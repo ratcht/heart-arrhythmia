@@ -2,6 +2,7 @@ import wfdb
 import csv
 import pandas as pd
 import math
+import numpy as np
 
 
 def get_label_table() -> pd.DataFrame:
@@ -117,9 +118,9 @@ class ECGRecord:
     self._rhythm_batch: list[pd.DataFrame] = batch
   
 
-  def _split_rhythm(self, rhythm: pd.DataFrame, interval_length:float = 0.8) -> list[pd.DataFrame]:
+  def _split_rhythm(self, rhythm: pd.DataFrame, interval_length:float = 0.8) -> tuple[np.ndarray, np.ndarray]:
     """
-    Split a rhythm into a list of DataFrames, each representing a beat centered around the annotation sample
+    Split a rhythm into nested lists, each representing a beat centered around the annotation sample
 
     Parameters
     -------
@@ -128,22 +129,79 @@ class ECGRecord:
     
     Returns
     -------
-    list[pd.DataFrame]
-      A list containing DataFrames, each representing one rhythm split
+    [ [ (int, int, int) ] ], [ str ]
+      Two lists for each beat. One contains the values in tuples of (sample_index, upper_lead, lower_lead). The second contains the corresponding label to each beat.
     """
-    num_samples = interval_length*self.sample_frequency
+    num_samples: int = int(interval_length*self.sample_frequency)
 
-    labels = rhythm["annotation"].dropna().unique()
-    print(labels)
-
+    annotated_samples: pd.DataFrame = rhythm["annotation"].dropna()
 
 
+    beats_values = []
+    beats_labels = []
+    for i, label in annotated_samples.items():
+      df = rhythm.loc[i-int(num_samples/2):i+int(num_samples/2)]
 
-  def to_ecg_data(self) -> ECGData:
+      # assert that df only has one annotation in its record
+      assert len(df.dropna()) == 1
+
+      row_tuple = list(df.drop("annotation", axis=1).itertuples(index=False, name=None))
+
+      beats_values.append(row_tuple)
+      beats_labels.append(label)
+
+    # drop first and last beat to ensure that all beats are same length samples
+    del beats_values[0]
+    del beats_values[-1]
+    del beats_labels[0]
+    del beats_labels[-1]
+
+    beats_values = np.array(beats_values, dtype = object)
+    # convert sample index to int
+    beats_values[:,:,0].astype('int')
+
+    beats_labels = np.array(beats_labels)
+
+    return beats_values, beats_labels
+
+
+  def _split_rhythm_batch(self) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Split a rhythm batch into a list of beats
+
+    Returns
+    -------
+    [[ [ (int, int, int) ] ]], [[ str ]]
+    """
     rhythm_batch = self._rhythm_batch
 
+    batch_values = []
+    batch_labels = []
+    for rhythm in rhythm_batch:
+      beats_values, beats_labels = self._split_rhythm(rhythm)
+      batch_values.append(beats_values)
+      batch_labels.append(beats_labels)
+    
+    batch_values = np.array(batch_values)
+    batch_labels = np.array(batch_labels)
 
-    self._split_rhythm(rhythm_batch[0])
+
+    return batch_values, batch_labels
+
+  """
+  Shape of Rhythm Batch:
+  (rhythm, beat, samples_in_beat, values)
+
+  Values represents...
+  (sample_index, upper_lead, lower_lead)
+  """
+  
+  def to_ecg_data(self) -> ECGData:
+    rhythm_batch_values, rhythm_batch_labels = self._split_rhythm_batch()
+
+    
+
+    
 
 ecg_data = ECGRecord(100)
 ecg_data.to_ecg_data()
