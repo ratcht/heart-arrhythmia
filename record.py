@@ -50,18 +50,18 @@ class ECGRecord:
     self.annotation_record = wfdb.rdann(f"data/{patient_number}", "atr")
 
     # Set Basic Dataframes
-    self.set_p_signal_df(self.patient_record)
-    self.set_annotation_df(self.annotation_record)
+    self._set_p_signal_df(self.patient_record)
+    self._set_annotation_df(self.annotation_record)
 
     # Set Properties
     self.sample_frequency: int = self.patient_record.fs
     self.record_length: int = len(self.patient_record.p_signal)
 
     # Set Rhythm Batch
-    self.set_rhythm_batch(self._p_signal_df, self._annotation_df)
+    self._set_rhythm_batch(self._p_signal_df, self._annotation_df)
 
 
-  def set_p_signal_df(self, patient_record) :
+  def _set_p_signal_df(self, patient_record) :
     leads = patient_record.sig_name
     p_signal = patient_record.p_signal
 
@@ -70,12 +70,12 @@ class ECGRecord:
     self._p_signal_df.index.name = "sample"
 
 
-  def set_annotation_df(self, annotation_record) :
+  def _set_annotation_df(self, annotation_record) :
     self._annotation_df: pd.DataFrame = pd.DataFrame({"annotation": annotation_record.symbol}, index=annotation_record.sample)
     self._annotation_df.index.name = "sample"
   
 
-  def set_rhythm_batch(self, p_signal_df: pd.DataFrame, annotation_df: pd.DataFrame):
+  def _set_rhythm_batch(self, p_signal_df: pd.DataFrame, annotation_df: pd.DataFrame):
     """
     Split a record into a list containing rhythms
 
@@ -195,7 +195,7 @@ class ECGRecord:
   Values represents...
   (sample_index, upper_lead, lower_lead)
   """
-  
+
   def to_ecg_data(self) -> ECGData:
     rhythm_batch_values, rhythm_batch_labels = self._split_rhythm_batch()
 
