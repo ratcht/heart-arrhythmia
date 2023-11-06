@@ -3,76 +3,64 @@ import csv
 import pandas as pd
 import math
 import numpy as np
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
+from data import ECGData
 
 
 def get_label_table() -> pd.DataFrame:
   return wfdb.io.annotation.ann_label_table
 
 def label_table_to_csv():
-  label_table : pd.DataFrame = wfdb.io.annotation.ann_label_table
+  label_table: pd.DataFrame = get_label_table()
   label_table.to_csv("label_table.csv")
-
-"""
-Object of Neural Network Input Data
-"""
-class ECGData:
-  """
-  A class used to represent the ECG input data for the neural network
-
-  ...
-
-  Attributes
-  ----------
-  beats: list[pd.DataFrame]
-    A list of dataframe objects representing the beat
-
-  beat_length: int
-    Number of samples in a single beat
-  
-  annotation_list: list[str]
-
-
-  Methods
-  -------
-
-  """
-  def __init__(self):
-    pass
 
 
 """
 ECG Record Data
 """
 class ECGRecord:
+  """
+  A class to process an ECG record given a patient record
+
+  ...
+
+  Attributes
+  -------
+
+  Methods
+  -------
+
+  """
   def __init__(self, patient_number):
     # Load files
     self.patient_record = wfdb.rdrecord(f"data/{patient_number}")
     self.annotation_record = wfdb.rdann(f"data/{patient_number}", "atr")
 
+    # Set Properties
+    self.sample_frequency: int = self.patient_record.fs
+    self.leads: list = self.patient_record.sig_name
+    self.record_length: int = len(self.patient_record.p_signal)
+
     # Set Basic Dataframes
     self.set_p_signal_df(self.patient_record)
     self.set_annotation_df(self.annotation_record)
 
-    # Set Properties
-    self.sample_frequency: int = self.patient_record.fs
-    self.record_length: int = len(self.patient_record.p_signal)
-
     # Set Rhythm Batch
-    self.set_rhythm_batch(self._p_signal_df, self._annotation_df)
+    self.set_rhythm_batch(self.__p_signal_df, self.__annotation_df)
 
 
   def set_p_signal_df(self, patient_record) :
-    leads = patient_record.sig_name
     p_signal = patient_record.p_signal
 
     # Convert p_signal to pandas df
-    self._p_signal_df = pd.DataFrame(p_signal, columns=leads)
-    self._p_signal_df.index.name = "sample"
+    self.__p_signal_df = pd.DataFrame(p_signal, columns=self.leads)
+    self.__p_signal_df.index.name = "sample"
 
 
   def set_annotation_df(self, annotation_record) :
-    self._annotation_df: pd.DataFrame = pd.DataFrame({"annotation": annotation_record.symbol}, index=annotation_record.sample)
-    self._annotation_df.index.name = "sample"
+    self.__annotation_df: pd.DataFrame = pd.DataFrame({"annotation": annotation_record.symbol}, index=annotation_record.sample)
+    self.__annotation_df.index.name = "sample"
   
 
   def set_rhythm_batch(self, p_signal_df: pd.DataFrame, annotation_df: pd.DataFrame):
@@ -87,9 +75,9 @@ class ECGRecord:
 
     ecg_data_df = p_signal_df.join(annotation_df)
 
-    # Split into rhythms (where '+' is)
+    # Split into rhythms (where '+' or '~' is)
 
-    split_indices = annotation_df.loc[annotation_df["annotation"] == '+'].index.to_list()
+    split_indices = annotation_df.loc[annotation_df["annotation"].isin(['+','~'])].index.to_list()
     split_indices.insert(0, -1) # Start at -1 to avoid including + annotation
     split_indices.append(self.record_length)
 
@@ -115,10 +103,10 @@ class ECGRecord:
         batch.append(df.reset_index()) # Reset index to start at 0
       
 
-    self._rhythm_batch: list[pd.DataFrame] = batch
+    self.__rhythm_batch: list[pd.DataFrame] = batch
   
 
-  def _split_rhythm(self, rhythm: pd.DataFrame, interval_length:float = 0.8) -> tuple[np.ndarray, np.ndarray]:
+  def __split_rhythm(self, rhythm: pd.DataFrame, normalize, interval_length:float = 0.8) -> tuple[np.ndarray, np.ndarray]:
     """
     Split a rhythm into nested lists, each representing a beat centered around the annotation sample
 
@@ -134,8 +122,7 @@ class ECGRecord:
     """
     num_samples: int = int(interval_length*self.sample_frequency)
 
-    annotated_samples: pd.DataFrame = rhythm["annotation"].dropna()
-
+    annotated_samples: pd.Series = rhythm["annotation"].dropna()
 
     beats_values = []
     beats_labels = []
@@ -143,7 +130,10 @@ class ECGRecord:
       df = rhythm.loc[i-int(num_samples/2):i+int(num_samples/2)]
 
       # assert that df only has one annotation in its record
-      assert len(df.dropna()) == 1
+      if not (len(df.dropna()) == 1):
+        print(df["annotation"].dropna())
+        print(self.sample_frequency)
+        raise Exception("More than one annotation in beat")
 
       row_tuple = list(df.drop("annotation", axis=1).itertuples(index=False, name=None))
 
@@ -156,16 +146,30 @@ class ECGRecord:
     del beats_labels[0]
     del beats_labels[-1]
 
+    # Check if all beats have same num samples
+    comparator_length = len(beats_values[0])
+    if not all(len(beat) == comparator_length for beat in beats_values): raise Exception("Not all values have same sample length")
+    self.beat_num_samples = comparator_length
+
     beats_values = np.array(beats_values, dtype = object)
     # convert sample index to int
     beats_values[:,:,0].astype('int')
+
+    # Normalize Data
+    # Add the abs of the lowest negative value to each entry such that all values are now positive
+    if normalize:
+      beats_values[:,:,1] += abs(np.min(beats_values[:,:,1]))
+      beats_values[:,:,1] = preprocessing.normalize(beats_values[:,:,1])
+
+      beats_values[:,:,2] += abs(np.min(beats_values[:,:,2]))
+      beats_values[:,:,2] = preprocessing.normalize(beats_values[:,:,2])
 
     beats_labels = np.array(beats_labels)
 
     return beats_values, beats_labels
 
 
-  def _split_rhythm_batch(self) -> tuple[np.ndarray, np.ndarray]:
+  def __split_rhythm_batch(self, normalize=False) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """
     Split a rhythm batch into a list of beats
 
@@ -173,37 +177,29 @@ class ECGRecord:
     -------
     [[ [ (int, int, int) ] ]], [[ str ]]
     """
-    rhythm_batch = self._rhythm_batch
+    rhythm_batch = self.__rhythm_batch
 
     batch_values = []
     batch_labels = []
+
     for rhythm in rhythm_batch:
-      beats_values, beats_labels = self._split_rhythm(rhythm)
+      beats_values, beats_labels = self.__split_rhythm(rhythm, normalize)
       batch_values.append(beats_values)
       batch_labels.append(beats_labels)
     
-    batch_values = np.array(batch_values)
-    batch_labels = np.array(batch_labels)
-
-
     return batch_values, batch_labels
 
   """
   Shape of Rhythm Batch:
   (rhythm, beat, samples_in_beat, values)
+  (x, y, 289, 3)
 
+  
   Values represents...
   (sample_index, upper_lead, lower_lead)
   """
   
-  def to_ecg_data(self) -> ECGData:
-    rhythm_batch_values, rhythm_batch_labels = self._split_rhythm_batch()
-
-    
-
-    
-
-ecg_data = ECGRecord(100)
-ecg_data.to_ecg_data()
-
+  def to_ecg_data(self, normalize=True) -> ECGData:
+    rhythm_batch_values, rhythm_batch_labels = self.__split_rhythm_batch(normalize)
+    return ECGData(rhythm_batch_values, rhythm_batch_labels, self.beat_num_samples, self.sample_frequency)
 
