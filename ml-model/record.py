@@ -178,8 +178,6 @@ class ECGRecord:
       joined_beats_labels.append(label)
 
     # Check if all beats have same num samples
-    print(len(indiv_beats_values))
-    print(len(joined_beats_values))
     comparator_length = len(joined_beats_values[0])
     if not all(len(beat) == comparator_length for beat in joined_beats_values): raise Exception("Not all values have same sample length")
     self.joined_beat_num_samples = comparator_length
@@ -209,7 +207,7 @@ class ECGRecord:
     return indiv_beats_values, indiv_beats_labels, joined_beats_values, joined_beats_labels
 
 
-  def __split_rhythm_batch(self, normalize=False, join=5) -> tuple[list[np.ndarray], list[np.ndarray]]:
+  def __split_rhythm_batch(self, normalize=False, join=5, joined_samples = 1360) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """
     Split a rhythm batch into a list of beats
 
@@ -227,7 +225,7 @@ class ECGRecord:
 
     for rhythm in rhythm_batch:
       if len(rhythm) < (360*join): continue
-      indiv_beats_values, indiv_beats_labels, joined_beats_values, joined_beats_labels = self.__split_rhythm(rhythm, normalize, interval_length=1, num_beats_joined=join, num_samples_joined=1360)
+      indiv_beats_values, indiv_beats_labels, joined_beats_values, joined_beats_labels = self.__split_rhythm(rhythm, normalize, interval_length=1, num_beats_joined=join, num_samples_joined=joined_samples)
       individual_batch_values.append(indiv_beats_values)
       individual_batch_labels.append(indiv_beats_labels)
       joined_batch_values.append(joined_beats_values)
@@ -247,6 +245,8 @@ class ECGRecord:
   """
   
   def to_ecg_data(self, normalize=True) -> ECGData:
-    rhythm_indiv_batch_values, rhythm_indiv_batch_labels, rhythm_joined_batch_values, rhythm_joined_batch_labels = self.__split_rhythm_batch(normalize, join=5)
-    return ECGData(rhythm_indiv_batch_values, rhythm_indiv_batch_labels, self.beat_num_samples, self.sample_frequency)
+    rhythm_indiv_batch_values, rhythm_indiv_batch_labels, rhythm_joined_batch_values, rhythm_joined_batch_labels = self.__split_rhythm_batch(normalize, join=5, joined_samples=1360)
+    return ECGData(rhythm_indiv_batch_values, rhythm_indiv_batch_labels,
+                   rhythm_joined_batch_values, rhythm_joined_batch_labels, 
+                   self.beat_num_samples, 1360, 5 ,self.sample_frequency)
 

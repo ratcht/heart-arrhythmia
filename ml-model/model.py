@@ -34,9 +34,6 @@ class Model:
 
 record = ECGRecord(105)
 ecg_data: ECGData = record.to_ecg_data()
-#ecg_data.show(0, only_irregularities=True)
-#ecg_data.prepare_batch()
-#print(ecg_data.x_batch)
-ecg_data.show_grouped_beat(0,only_irregularities=False)
-
+ecg_data.prepare_batch()
+ecg_data.show_grouped_beat(only_irregularities=False)
 #test = Model()
