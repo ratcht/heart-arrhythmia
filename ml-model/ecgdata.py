@@ -81,18 +81,54 @@ class ECGData:
 
       joined_beats_values.append(joined_array_values)
       joined_beats_labels.append(combined_label)
-  
-    print(joined_beats_labels)
 
+    return joined_beats_values, joined_beats_labels
 
+  def prepare_batch(self):
+    for i in range(0, len(self.rhythm_batch_labels)):
+      print("num individual beats: ")
+      print(len(self.rhythm_batch_values[i]))
+      joined_beats_values, joined_beats_labels = self.join_beats(self.rhythm_batch_values[i], self.rhythm_batch_labels[i], 5)
+      print("joined np")
+      print(np.array(joined_beats_values))
+      print("joined len")
+      print(np.array(joined_beats_values).shape)
+      self.x_batch.append(np.array(joined_beats_values))
+      self.y_batch.append(np.array(joined_beats_labels))
+
+      
+    
         
 
-  def show(self):
-    y = self.rhythm_batch_values[:,:,:,1][0][1]
+  def show_individual_beat(self, batch_num, only_irregularities=False):
+    print("\n\n\nTEST")
 
-    stop = len(y)/self.sample_frequency
-    x = np.linspace(0, stop, 289)
+    assert(len(self.rhythm_batch_labels[batch_num]) == len(self.rhythm_batch_values[batch_num][:,:,1]))
+    for i in range(0, len(self.rhythm_batch_labels[batch_num])):
+      y = self.rhythm_batch_values[batch_num][:,:,1][i]
 
-    plt.plot(x, y)
-    plt.show()
+      if only_irregularities and self.rhythm_batch_labels[batch_num][i] == "N": continue
+      print("\n\nLABEL:")
+      print(self.rhythm_batch_labels[batch_num][i])
+      stop = len(y)/self.sample_frequency
+      x = np.linspace(0, stop, self.beat_num_samples)
+
+      plt.plot(x, y)
+      plt.show()
+
+  def show_grouped_beat(self, batch_num, only_irregularities=False):
+    print("\n\n\nTEST")
+
+    assert(len(self.y_batch[batch_num]) == len(self.x_batch[batch_num][:,:,1]))
+    for i in range(0, len(self.y_batch[batch_num])):
+      y_axis = self.x_batch[batch_num][:,:,1][i]
+
+      if only_irregularities and self.y_batch[batch_num][i] == "N": continue
+      print("\n\nLABEL:")
+      print(self.y_batch[batch_num][i])
+      stop = len(y_axis)/self.sample_frequency
+      x_axis = np.linspace(0, stop, self.beat_num_samples)
+
+      plt.plot(x_axis, y_axis)
+      plt.show()
 

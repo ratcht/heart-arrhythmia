@@ -3,7 +3,7 @@ import tensorflow as tf
 import keras
 from keras import layers
 from record import ECGRecord
-from data import ECGData
+from ecgdata import ECGData
 
 class Model:
   def __init__(self, input_shape):
@@ -34,6 +34,9 @@ class Model:
 
 record = ECGRecord(105)
 ecg_data: ECGData = record.to_ecg_data()
-ecg_data.join_beats(ecg_data.rhythm_batch_values[0], ecg_data.rhythm_batch_labels[0], 5)
+#ecg_data.show(0, only_irregularities=True)
+#ecg_data.prepare_batch()
+#print(ecg_data.x_batch)
+ecg_data.show_grouped_beat(0,only_irregularities=False)
 
 #test = Model()

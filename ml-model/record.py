@@ -5,7 +5,8 @@ import math
 import numpy as np
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
-from data import ECGData
+import math
+from ecgdata import ECGData
 
 
 def get_label_table() -> pd.DataFrame:
@@ -106,7 +107,7 @@ class ECGRecord:
     self.__rhythm_batch: list[pd.DataFrame] = batch
   
 
-  def __split_rhythm(self, rhythm: pd.DataFrame, normalize, interval_length:float = 0.8) -> tuple[np.ndarray, np.ndarray]:
+  def __split_rhythm(self, rhythm: pd.DataFrame, normalize, interval_length:float = 1, num_beats_joined = 5, num_samples_joined=1360) -> tuple[np.ndarray, np.ndarray]:
     """
     Split a rhythm into nested lists, each representing a beat centered around the annotation sample
 
@@ -124,52 +125,91 @@ class ECGRecord:
 
     annotated_samples: pd.Series = rhythm["annotation"].dropna()
 
-    beats_values = []
-    beats_labels = []
+    indiv_beats_values = []
+    indiv_beats_labels = []
+    joined_beats_values = []
+    joined_beats_labels = []
+    skip_this=False
     for i, label in annotated_samples.items():
-      df = rhythm.loc[i-int(num_samples/2):i+int(num_samples/2)]
+      if skip_this: 
+        skip_this = False
+        continue
+      indiv_df = rhythm.loc[i-math.floor(num_samples/2):i+math.ceil(num_samples/2)-1]
 
       # assert that df only has one annotation in its record
-      if not (len(df.dropna()) == 1):
-        print(df["annotation"].dropna())
-        print(self.sample_frequency)
-        raise Exception("More than one annotation in beat")
+      if not (len(indiv_df.dropna()) == 1):
+        label = indiv_df["annotation"].dropna().loc[indiv_df["annotation"] != "N"].values[0]
+        skip_this = True
 
-      row_tuple = list(df.drop("annotation", axis=1).itertuples(index=False, name=None))
-
-      beats_values.append(row_tuple)
-      beats_labels.append(label)
+      row_tuple = list(indiv_df.drop("annotation", axis=1).itertuples(index=False, name=None))
+      indiv_beats_values.append(row_tuple)
+      indiv_beats_labels.append(label)
 
     # drop first and last beat to ensure that all beats are same length samples
-    del beats_values[0]
-    del beats_values[-1]
-    del beats_labels[0]
-    del beats_labels[-1]
+    del indiv_beats_values[0]
+    del indiv_beats_values[-1]
+    del indiv_beats_labels[0]
+    del indiv_beats_labels[-1]
 
     # Check if all beats have same num samples
-    comparator_length = len(beats_values[0])
-    if not all(len(beat) == comparator_length for beat in beats_values): raise Exception("Not all values have same sample length")
+    comparator_length = len(indiv_beats_values[0])
+    if not all(len(beat) == comparator_length for beat in indiv_beats_values): raise Exception("Not all values have same sample length")
     self.beat_num_samples = comparator_length
 
-    beats_values = np.array(beats_values, dtype = object)
+    indiv_beats_values = np.array(indiv_beats_values, dtype = object)
     # convert sample index to int
-    beats_values[:,:,0].astype('int')
+    indiv_beats_values[:,:,0].astype('int')
+
+    for i in range(0, len(indiv_beats_values)-4, 5):
+      start_sample = indiv_beats_values[i][0][0]
+      end_sample = indiv_beats_values[i+4][len(indiv_beats_values[i+4])-1][0]
+
+      diff_samples = end_sample-start_sample
+      error = diff_samples - num_samples_joined + 1
+
+      joined_df: pd.DataFrame = rhythm.loc[(rhythm["sample"] >= (start_sample + math.floor(error/2))) & (rhythm["sample"] <= (end_sample - math.ceil(error/2)))]
+      
+      labels = list(joined_df["annotation"].dropna().unique())
+      labels.remove('N')
+      label = 'N' if len(labels) == 0 else labels[0]
+
+      row_tuple = list(joined_df.drop("annotation", axis=1).itertuples(index=False, name=None))
+      joined_beats_values.append(row_tuple)
+      joined_beats_labels.append(label)
+
+    # Check if all beats have same num samples
+    print(len(indiv_beats_values))
+    print(len(joined_beats_values))
+    comparator_length = len(joined_beats_values[0])
+    if not all(len(beat) == comparator_length for beat in joined_beats_values): raise Exception("Not all values have same sample length")
+    self.joined_beat_num_samples = comparator_length
+
+    joined_beats_values = np.array(joined_beats_values, dtype = object)
+    # convert sample index to int
+    joined_beats_values[:,:,0].astype('int')
+
 
     # Normalize Data
     # Add the abs of the lowest negative value to each entry such that all values are now positive
     if normalize:
-      beats_values[:,:,1] += abs(np.min(beats_values[:,:,1]))
-      beats_values[:,:,1] = preprocessing.normalize(beats_values[:,:,1])
+      indiv_beats_values[:,:,1] += abs(np.min(indiv_beats_values[:,:,1]))
+      indiv_beats_values[:,:,1] = preprocessing.normalize(indiv_beats_values[:,:,1])
 
-      beats_values[:,:,2] += abs(np.min(beats_values[:,:,2]))
-      beats_values[:,:,2] = preprocessing.normalize(beats_values[:,:,2])
+      indiv_beats_values[:,:,2] += abs(np.min(indiv_beats_values[:,:,2]))
+      indiv_beats_values[:,:,2] = preprocessing.normalize(indiv_beats_values[:,:,2])
 
-    beats_labels = np.array(beats_labels)
+      joined_beats_values[:,:,1] += abs(np.min(joined_beats_values[:,:,1]))
+      joined_beats_values[:,:,1] = preprocessing.normalize(joined_beats_values[:,:,1])
 
-    return beats_values, beats_labels
+      joined_beats_values[:,:,2] += abs(np.min(joined_beats_values[:,:,2]))
+      joined_beats_values[:,:,2] = preprocessing.normalize(joined_beats_values[:,:,2])
+
+    indiv_beats_labels = np.array(indiv_beats_labels)
+    joined_beats_labels = np.array(joined_beats_labels)
+    return indiv_beats_values, indiv_beats_labels, joined_beats_values, joined_beats_labels
 
 
-  def __split_rhythm_batch(self, normalize=False) -> tuple[list[np.ndarray], list[np.ndarray]]:
+  def __split_rhythm_batch(self, normalize=False, join=5) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """
     Split a rhythm batch into a list of beats
 
@@ -179,15 +219,22 @@ class ECGRecord:
     """
     rhythm_batch = self.__rhythm_batch
 
-    batch_values = []
-    batch_labels = []
+    individual_batch_values = []
+    individual_batch_labels = []
+
+    joined_batch_values = []
+    joined_batch_labels = []
 
     for rhythm in rhythm_batch:
-      beats_values, beats_labels = self.__split_rhythm(rhythm, normalize)
-      batch_values.append(beats_values)
-      batch_labels.append(beats_labels)
-    
-    return batch_values, batch_labels
+      if len(rhythm) < (360*join): continue
+      indiv_beats_values, indiv_beats_labels, joined_beats_values, joined_beats_labels = self.__split_rhythm(rhythm, normalize, interval_length=1, num_beats_joined=join, num_samples_joined=1360)
+      individual_batch_values.append(indiv_beats_values)
+      individual_batch_labels.append(indiv_beats_labels)
+      joined_batch_values.append(joined_beats_values)
+      joined_batch_labels.append(joined_beats_labels)
+
+  
+    return individual_batch_values, individual_batch_labels, joined_batch_values, joined_batch_labels
 
   """
   Shape of Rhythm Batch:
@@ -200,6 +247,6 @@ class ECGRecord:
   """
   
   def to_ecg_data(self, normalize=True) -> ECGData:
-    rhythm_batch_values, rhythm_batch_labels = self.__split_rhythm_batch(normalize)
-    return ECGData(rhythm_batch_values, rhythm_batch_labels, self.beat_num_samples, self.sample_frequency)
+    rhythm_indiv_batch_values, rhythm_indiv_batch_labels, rhythm_joined_batch_values, rhythm_joined_batch_labels = self.__split_rhythm_batch(normalize, join=5)
+    return ECGData(rhythm_indiv_batch_values, rhythm_indiv_batch_labels, self.beat_num_samples, self.sample_frequency)
 
