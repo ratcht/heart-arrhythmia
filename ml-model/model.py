@@ -70,3 +70,67 @@ def readucr(filename):
 record = ECGRecord(100)
 ecg_data: ECGData = record.to_ecg_data()
 
+cnn = Model((ecg_data.joined_num_samples, 1))
+
+epochs = 80
+batch_size = 32
+
+
+callbacks = [
+    keras.callbacks.ModelCheckpoint(
+        "best_model.h5", save_best_only=True, monitor="val_loss"
+    ),
+    keras.callbacks.ReduceLROnPlateau(
+        monitor="val_loss", factor=0.5, patience=20, min_lr=0.0001
+    ),
+    keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, verbose=1),
+]
+
+test_acc_list = []
+test_loss_list = []
+
+for i in range(0,3):
+  x_train, x_test, y_train, y_test = ecg_data.j_fold_validation_split(i, 3)
+
+  cnn.model.compile(
+      optimizer="adam",
+      loss="sparse_categorical_crossentropy",
+      metrics=["sparse_categorical_accuracy"],
+  )
+  history = cnn.model.fit(
+      x_train,
+      y_train,
+      batch_size=batch_size,
+      epochs=epochs,
+      callbacks=callbacks,
+      validation_split=0.2,
+      verbose=1,
+  )
+
+  model = keras.models.load_model("best_model.h5")
+
+  test_loss, test_acc = model.evaluate(x_test, y_test)
+
+  test_acc_list.append(test_acc)
+  test_loss_list.append(test_loss)
+
+  print("Test accuracy", test_acc)
+  print("Test loss", test_loss)
+
+  metric = "sparse_categorical_accuracy"
+  plt.figure()
+  plt.plot(history.history[metric])
+  plt.plot(history.history["val_" + metric])
+  plt.title("model " + metric)
+  plt.ylabel(metric, fontsize="large")
+  plt.xlabel("epoch", fontsize="large")
+  plt.legend(["train", "val"], loc="best")
+  plt.show()
+  plt.close()
+
+test_acc_avg = statistics.fmean(test_acc_list)  # = 20.11111111111111
+test_loss_avg = statistics.fmean(test_acc_list)  # = 20.11111111111111
+
+print(f"Test accuracy final: {test_acc_avg},  Test loss final: {test_loss_avg}")
+
+#test = Model()
