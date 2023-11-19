@@ -87,6 +87,3 @@ def process_record(patient_number: int):
   """
 
 
-
-create_csv(100)
-
