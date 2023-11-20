@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +43,13 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t tx_buffer[27] = "Hi this is a test\n\r";
+uint8_t rx_indx;
+uint8_t rx_data[12];
+uint8_t rx_buffer[100];
+uint8_t transfer_cplt;
+char buffer[16];
+
 
 /* USER CODE END PV */
 
@@ -56,6 +63,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t a[1];
 
 /* USER CODE END 0 */
 
@@ -90,16 +98,27 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  //HAL_UART_Receive_IT(&huart2, rx_data, 12);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  a[0] = 1;
   while (1)
   {
     /* USER CODE END WHILE */
+	  //HAL_GPIO_TogglePin (GPIOA, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin (GPIOA, GPIO_PIN_5);
-	  HAL_Delay (100);   /* Insert delay 100 ms */
-    /* USER CODE BEGIN 3 */
+ 	  //HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
+ 	  //a[0]++;
+ 	  HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
+
+
+
+	  //HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
+	  HAL_Delay(1000);
+//    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -221,6 +240,19 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	UNUSED(huart);
+    a[0]++;
+    if(huart->Instance == USART2)
+    {
+        if (a[0]%5==0)
+        	 HAL_UART_Transmit(&huart2, rx_data, 12, 10);
+        HAL_UART_Receive_IT(&huart2, rx_data, 12);
+    }
+}
+
 
 /* USER CODE END 4 */
 
