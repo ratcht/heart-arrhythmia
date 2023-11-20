@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f5e0b850-5c8a-4c09-b98b-f7e15b27582a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.ide.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.ide.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.cdt.core/.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.cdt.core/.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.cdt.core/ECE198.1700446239967.pdom" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.cdt.ui/global-build.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.cdt.ui/global-build.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.indexes/af/history.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.indexes/bf/c4/history.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.indexes/properties.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.location" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.markers.snap" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.projects/ECE198/.syncinfo.snap" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.root/.markers.snap" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/.root/.markers.snap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/1.snap" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.resources/1.snap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.cdt.core.prj-ECE198.prefs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.debug.ui.prefs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.debug.ui.prefs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.launchbar.core.prefs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.launchbar.core.prefs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.ui.workbench.prefs" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.ui.workbench.prefs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.debug.ui/launchConfigurationHistory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.debug.ui/launchConfigurationHistory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2023/11/47/refactorings.history" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2023/11/47/refactorings.history" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2023/11/47/refactorings.index" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/.workspace/2023/11/47/refactorings.index" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/ECE198/2023/11/47/refactorings.history" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/.plugins/org.eclipse.ltk.core.refactoring/.refactorings/ECE198/2023/11/47/refactorings.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../.metadata/version.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../../../.metadata/version.ini" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2023" />
+    <option name="minorVersion" value="1.5" />
+  </component>
+  <component name="ProjectId" id="2YRHTY3z8D0QO0wLi1XDDs8PU4y" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "stm32-board",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f5e0b850-5c8a-4c09-b98b-f7e15b27582a" name="Changes" comment="" />
+      <created>1700481480687</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1700481480687</updated>
+      <workItem from="1700481482179" duration="11000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

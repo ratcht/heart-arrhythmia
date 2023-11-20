@@ -22,6 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdlib.h>
+#include <float.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,9 +47,16 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint8_t tx_buffer[27] = "Hi this is a test\n\r";
+uint8_t tx6_buffer[81500] = "Hi afsfsafasa test\n\r";
+
+
+void call_buffer(){
+	  //a[0]++;
+	  HAL_UART_Transmit(&huart2, tx6_buffer, 100, 10);
+}
+
 uint8_t rx_indx;
 uint8_t rx_data[12];
-uint8_t rx_buffer[100];
 uint8_t transfer_cplt;
 char buffer[16];
 
@@ -63,7 +73,6 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t a[1];
 
 /* USER CODE END 0 */
 
@@ -104,16 +113,40 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  a[0] = 1;
+  int* ptr;
+
+ // Get the number of elements for the array
+
+ // Dynamically allocate memory using malloc()
+  size_t Size = 256 * 1024 * 1024;
+  ptr = malloc(Size);
+  if (ptr != NULL) {
+    memset(ptr, 123, Size);
+  }
+
+ // Check if the memory has been successfully
+ // allocated by malloc or not
+ uint8_t s_buffer[8] = "nah";
+ uint8_t x_buffer[8] = "yeah";
+
+ if (ptr == NULL) {
+	  HAL_UART_Transmit(&huart2, s_buffer, 8, 10);
+
+ }
+ else {
+	  HAL_UART_Transmit(&huart2, x_buffer, 8, 10);
+
+
+ }
+
   while (1)
   {
     /* USER CODE END WHILE */
 	  //HAL_GPIO_TogglePin (GPIOA, GPIO_PIN_5);
 	  HAL_GPIO_TogglePin (GPIOA, GPIO_PIN_5);
  	  //HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
- 	  //a[0]++;
- 	  HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
 
+	  call_buffer();
 
 
 	  //HAL_UART_Transmit(&huart2, tx_buffer, 27, 10);
@@ -244,11 +277,9 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UNUSED(huart);
-    a[0]++;
     if(huart->Instance == USART2)
     {
-        if (a[0]%5==0)
-        	 HAL_UART_Transmit(&huart2, rx_data, 12, 10);
+        HAL_UART_Transmit(&huart2, rx_data, 12, 10);
         HAL_UART_Receive_IT(&huart2, rx_data, 12);
     }
 }
