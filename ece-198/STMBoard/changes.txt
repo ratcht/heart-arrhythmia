@@ -1,0 +1,14 @@
+Date of Revision: November 19th, 2023
+
+
+Files Changed:
+main.c
+stm32.ioc
+
+Changes:
+Implemented UART IO
+	Configured and wrote functions to interact with the USB port via UART.
+Set up loop to continuously receive and transmit data
+	Main loop to continuously transmit data, and set up Interrupt Callback to output data
+Set up function to load TensorFlow Lite Model into RAM
+
